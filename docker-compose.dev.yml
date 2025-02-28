@@ -1,0 +1,74 @@
+services:
+
+  mysql_bp_dev:
+    image: mysql:latest
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USERNAME}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "${MYSQL_PORT}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "mysql_bp_dev", "-u", "${MYSQL_USERNAME}", "--password=${MYSQL_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 15s 
+    networks:
+      - backend
+
+  manage:
+    container_name: manage
+    platform: linux/x86_64
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: manage
+    env_file:
+      - .env
+    restart: unless-stopped
+    command: gunicorn --bind 0.0.0.0:${PORT_MANAGE} --workers ${WORKER_MANGE} manage.wsgi:application --reload
+    ports:
+      - "${PORT_MANAGE}:${PORT_MANAGE}"
+    volumes:
+      - ./manage:/manage
+      - staticfiles:/manage/staticfiles
+    depends_on:
+      - mysql_bp_dev
+    networks:
+      - backend
+
+  ocr-api:
+    container_name: ocr-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development_api
+    restart: unless-stopped
+    ports:
+      - "${PORT_OCR_DEV}:${PORT_OCR_DEV}"
+    environment:
+      PORT: ${PORT_OCR_DEV}
+      MYSQL_HOST: mysql_bp_dev
+      MYSQL_PORT: ${MYSQL_PORT}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USERNAME: ${MYSQL_USERNAME}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - ./ocr-api:/ocr-api
+    depends_on:
+      - mysql_bp_dev
+    networks:
+      - backend
+
+volumes:
+  mysql_data:
+  staticfiles:
+
+networks:
+  backend:
+    driver: bridge

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h1>Tải tệp (chỉ sử dụng PDF)</h1>
+        <form id="uploadForm" method="post" enctype="multipart/form-data" action="{% url 'homeview:upload' %}">
+            {% csrf_token %}
+            <input type="file" id="fileInput" name="pdf_files" multiple>
+            <ul id="fileList"></ul>
+            <button type="submit" id="uploadButton">Thực hiện</button>
+        </form>
+    </div>
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>
