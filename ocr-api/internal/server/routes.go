@@ -17,6 +17,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 	// Register routes
 	mux.HandleFunc("/pdf-parser", s.PDFParser)
 
+	// mux.HandleFunc()
+
 	// Wrap the mux with CORS middleware
 	return s.corsMiddleware(mux)
 }

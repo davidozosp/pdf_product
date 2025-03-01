@@ -24,11 +24,14 @@ load_dotenv(ENV_PATH)
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 HOST_PARSER = os.getenv('PORT_OCR_DEV')
+PORT_MANAGE = os.getenv('PORT_MANAGE')
+DATA_UPLOAD_MAX_NUMBER_FILES = 10
+GUIDE_PATH = os.getenv('GUIDE_PATH')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -41,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'home.apps.HomeConfig',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [

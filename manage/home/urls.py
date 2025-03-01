@@ -17,8 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from home.views import home_view
-
+from home.router.handler import HandlerFile, HandlerSplitSKU
 
 urlpatterns = [
     path('upload/', home_view, name='upload'),
+    
+    path('api/uploadfile', HandlerFile.as_view(), name = 'uploadfile'),
+    path('api/split-sku', HandlerSplitSKU.as_view(), name = 'split-sku'),
 ]

@@ -11,41 +11,25 @@ from common.clean import clean_product_text
 def home_view(request):
     
     if request.method == "POST":
-        HOST_PARSER = settings.HOST_PARSER
-        pages : list[tuple] = []
-        merges = PdfMerger()
-        for index, value in enumerate(request.FILES):
-            reader = PdfReader(request.FILES[value])
-            for _, page in enumerate(reader.pages):
-                writer = PdfWriter()
-                writer.add_page(page)
-                pdf_buffer = BytesIO()
-                writer.write(pdf_buffer)
-                pages.append(('files[]', (F"{index}_{_}.pdf", pdf_buffer.getvalue(), 'application/pdf')))
-                merges.append(pdf_buffer)
-        merges.write("a.pdf")
-        url = F"http://ocr-api:{HOST_PARSER}/pdf-parser"
-        response = requests.request("GET", url, files=pages)
-        responseText : list[dict] = response.json()
         
-        orders :list = []
-    
-        for index_page, page in enumerate(responseText):
-            contentOrder = page['ContentOrder']
-            _product_lines = re.split(r'(?=\d+\.)', contentOrder)
-            product_lines = [pro.strip() for pro in _product_lines if pro != ""]
-            for index_product, product in enumerate(product_lines):
-                content_order, sl = clean_product_text(product)
-                orders.append({
-                    "page" : index_page,
-                    "order_id" : page["OrderId"],
-                    "content": content_order,
-                    "quantity": sl,
-                    "total_product": len(product_lines),
-                })
-                
-        for order in orders:
-            print(order)
+        PORT_MANAGE = settings.PORT_MANAGE
+        url_handler = f"http://manage:{PORT_MANAGE}/api/uploadfile"
+        url_handler_split_sku = f"http://manage:{PORT_MANAGE}/api/split-sku"
+        
+        files = request.FILES
+        fileupload = []
+        for index, value in enumerate(files):
+            fileupload.append(('files[]', (F"{index}.pdf", files[value].read(), 'application/pdf')))
+            
+            
+        
+        response_pdf2text = requests.request("POST", url_handler, files=fileupload)
+        orders_json = response_pdf2text.json()
+        orders = orders_json['orders']
+        pdf_str = orders_json['pdf']
+        pdf_bytes = pdf_str.encode()
+        
+        response_split_sku = requests.request("POST", url_handler_split_sku, json = {"orders": orders})
         
         
         return render(request, 'index.html', {})
